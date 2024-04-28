@@ -23,16 +23,16 @@ func main() {
 		flag.Parse()
 		urls := flag.Args()
 
-		g, ctx := errgroup.WithContext(context.Background())
+		group, ctx := errgroup.WithContext(context.Background())
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
-		g.SetLimit(*maxGoroutines)
+		group.SetLimit(*maxGoroutines)
 
 		errChan := make(chan error, len(urls))
 		results := make([]traceResult, len(urls))
 
 		for i := range urls {
-			g.Go(func() error {
+			group.Go(func() error {
 				result, err := hitUrl(ctx, urls[i])
 				if err != nil {
 					errChan <- err
@@ -48,7 +48,7 @@ func main() {
 			}
 		}()
 
-		if err := g.Wait(); err != nil {
+		if err := group.Wait(); err != nil {
 			return nil, err
 		}
 

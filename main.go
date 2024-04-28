@@ -22,6 +22,7 @@ func main() {
 		var maxGoroutines = flag.IntP("goroutines", "g", 0, "Maximum number of goroutines")
 		flag.Parse()
 		urls := flag.Args()
+
 		g, ctx := errgroup.WithContext(context.Background())
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()

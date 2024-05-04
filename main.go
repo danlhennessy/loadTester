@@ -14,6 +14,7 @@ import (
 
 type traceResult struct {
 	url           string
+	statusCode    int
 	totalDuration time.Duration
 }
 
@@ -97,12 +98,9 @@ func hitUrl(ctx context.Context, url string) (traceResult, error) {
 
 	result := traceResult{
 		url:           url,
+		statusCode:    resp.StatusCode,
 		totalDuration: elapsed,
 	}
 
 	return result, nil
-}
-
-func addOne(num int) int {
-	return num + 1
 }

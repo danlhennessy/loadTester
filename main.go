@@ -36,8 +36,8 @@ func main() {
 				result, err := hitUrl(ctx, urls[i])
 				if err != nil {
 					errChan <- err
-				} 
-        results[i] = result
+				}
+				results[i] = result
 				return nil
 			})
 		}
@@ -89,7 +89,7 @@ func hitUrl(ctx context.Context, url string) (traceResult, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-    return traceResult{url: url}, err
+		return traceResult{url: url}, err
 	}
 	defer resp.Body.Close()
 
@@ -101,4 +101,8 @@ func hitUrl(ctx context.Context, url string) (traceResult, error) {
 	}
 
 	return result, nil
+}
+
+func addOne(num int) int {
+	return num + 1
 }

@@ -6,18 +6,8 @@ import (
 	"time"
 )
 
-// func TestAddition(t *testing.T) {
-// 	startNum := 1
-
-// 	want := 2
-// 	result := addOne(startNum)
-// 	if result != want {
-// 		t.Fatalf("Result: %d does not match expected value: %d", result, want)
-// 	}
-// }
-
 func TestHitUrl(t *testing.T) {
-	testUrl := "https://gesgergregerexample.com"
+	testUrl := "https://example.com"
 
 	want := traceResult{
 		url:           testUrl,

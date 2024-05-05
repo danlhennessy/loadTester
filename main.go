@@ -77,8 +77,11 @@ func hitUrl(ctx context.Context, url string) (traceResult, error) {
 		GotConn: func(connInfo httptrace.GotConnInfo) {
 			fmt.Printf("Got Conn: %+v\n", connInfo)
 		},
-		DNSDone: func(dnsInfo httptrace.DNSDoneInfo) {
-			fmt.Printf("DNS Info: %+v\n", dnsInfo)
+		DNSStart: func(dnsStartInfo httptrace.DNSStartInfo) {
+			fmt.Printf("DNS lookup started for: %v at time: %s\n", dnsStartInfo, time.Now())
+		},
+		DNSDone: func(dnsDoneInfo httptrace.DNSDoneInfo) {
+			fmt.Printf("DNS Info: %+v - Completed at time: %s\n", dnsDoneInfo, time.Now())
 		},
 	}
 

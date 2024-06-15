@@ -36,37 +36,22 @@ func main() {
 }
 
 func LoadTest(urls []string, maxGoroutines *int) ([]traceResult, error) {
-
 	group, ctx := errgroup.WithContext(context.Background())
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	group.SetLimit(*maxGoroutines)
 
-	errChan := make(chan error, len(urls))
+	group.SetLimit(*maxGoroutines)
 	results := make([]traceResult, len(urls))
 
 	for i := range urls {
 		group.Go(func() error {
 			result, err := hitUrl(ctx, urls[i])
-			if err != nil {
-				errChan <- err
-			}
 			results[i] = result
-			return nil
+			return err
 		})
 	}
 
-	go func() {
-		group.Wait()
-		close(errChan)
-	}()
-
-	for err := range errChan {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-	}
-
 	if err := group.Wait(); err != nil {
-
 		return nil, err
 	}
 

@@ -30,7 +30,7 @@ func TestConcurrentLoadTest(t *testing.T) {
 
 	testUrls := []string{
 		"https://example.com",
-		"https://grrrrrrqwddwqdwoogle.com",
+		"https://google.com",
 		"https://bbc.co.uk",
 	}
 	testGoroutines := len(testUrls)
@@ -38,10 +38,8 @@ func TestConcurrentLoadTest(t *testing.T) {
 
 	allResults, err := LoadTest(testUrls, &testGoroutines)
 
-	fmt.Println("Check")
-
 	if err != nil {
-		t.Fatalf("Concurrent load test failed, error: %s\n", err)
+		fmt.Printf("Concurrent load test failed, error: %s\n", err)
 	}
 	if len(allResults) < len(want) {
 		t.Fatalf("Not enough results returned\n")

@@ -19,44 +19,11 @@ type traceResult struct {
 }
 
 func main() {
-	LoadTest := func(ctx context.Context) ([]traceResult, error) {
-		var maxGoroutines = flag.IntP("goroutines", "g", 0, "Maximum number of goroutines")
-		flag.Parse()
-		urls := flag.Args()
 
-		group, ctx := errgroup.WithContext(context.Background())
-		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-		group.SetLimit(*maxGoroutines)
+	flag.Parse()
+	urls := flag.Args()
 
-		errChan := make(chan error, len(urls))
-		results := make([]traceResult, len(urls))
-
-		for i := range urls {
-			group.Go(func() error {
-				result, err := hitUrl(ctx, urls[i])
-				if err != nil {
-					errChan <- err
-				}
-				results[i] = result
-				return nil
-			})
-		}
-
-		go func() {
-			for err := range errChan {
-				fmt.Fprintln(os.Stderr, "Error:", err)
-			}
-		}()
-
-		if err := group.Wait(); err != nil {
-			return nil, err
-		}
-
-		return results, nil
-	}
-
-	allResults, err := LoadTest(context.Background())
+	allResults, err := LoadTest(urls)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -65,6 +32,41 @@ func main() {
 	for _, result := range allResults {
 		fmt.Println(result)
 	}
+}
+
+func LoadTest(urls []string) ([]traceResult, error) {
+	var maxGoroutines = flag.IntP("goroutines", "g", 0, "Maximum number of goroutines")
+
+	group, ctx := errgroup.WithContext(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	group.SetLimit(*maxGoroutines)
+
+	errChan := make(chan error, len(urls))
+	results := make([]traceResult, len(urls))
+
+	for i := range urls {
+		group.Go(func() error {
+			result, err := hitUrl(ctx, urls[i])
+			if err != nil {
+				errChan <- err
+			}
+			results[i] = result
+			return nil
+		})
+	}
+
+	go func() {
+		for err := range errChan {
+			fmt.Fprintln(os.Stderr, "Error:", err)
+		}
+	}()
+
+	if err := group.Wait(); err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
 
 func hitUrl(ctx context.Context, url string) (traceResult, error) {

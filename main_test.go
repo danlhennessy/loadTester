@@ -2,8 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"testing"
 	"time"
+
+	"go.uber.org/goleak"
 )
 
 func TestHitUrl(t *testing.T) {
@@ -19,5 +23,19 @@ func TestHitUrl(t *testing.T) {
 
 	if result.url != want.url || result.statusCode != want.statusCode || result.totalDuration < want.totalDuration || err != nil {
 		t.Fatalf("Url hit failed, or totalDuration less than minimum expected: %v", result)
+	}
+}
+
+func TestLeaks(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
+	allResults, err := LoadTest(context.Background())
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+
+	for _, result := range allResults {
+		fmt.Println(result)
 	}
 }

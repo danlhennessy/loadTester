@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -22,20 +20,27 @@ func TestHitUrl(t *testing.T) {
 	result, err := hitUrl(context.Background(), testUrl)
 
 	if result.url != want.url || result.statusCode != want.statusCode || result.totalDuration < want.totalDuration || err != nil {
-		t.Fatalf("Url hit failed, or totalDuration less than minimum expected: %v", result)
+		t.Fatalf("Url hit failed, or totalDuration less than minimum expected: %v, Error: %s\n", result, err)
 	}
 }
 
-func TestLeaks(t *testing.T) {
+func TestConcurrentLoadTest(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
-	allResults, err := LoadTest(context.Background())
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return
+	testUrls := []string{
+		"https://example.com",
+		"https://google.com",
+		"https://bbc.co.uk",
 	}
+	testGoroutines := len(testUrls)
+	want := make([]traceResult, testGoroutines)
 
-	for _, result := range allResults {
-		fmt.Println(result)
+	allResults, err := LoadTest(testUrls, &testGoroutines)
+
+	if err != nil {
+		t.Fatalf("Concurrent load test failed, error: %s\n", err)
+	}
+	if len(allResults) < len(want) {
+		t.Fatalf("Not enough results returned\n")
 	}
 }

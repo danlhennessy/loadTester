@@ -20,22 +20,22 @@ type traceResult struct {
 
 func main() {
 
+	var maxGoroutines = flag.IntP("goroutines", "g", 0, "Maximum number of goroutines")
 	flag.Parse()
 	urls := flag.Args()
 
-	allResults, err := LoadTest(urls)
+	allResults, err := LoadTest(urls, maxGoroutines)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 
-	for _, result := range allResults {
+	for result := range allResults {
 		fmt.Println(result)
 	}
 }
 
-func LoadTest(urls []string) ([]traceResult, error) {
-	var maxGoroutines = flag.IntP("goroutines", "g", 0, "Maximum number of goroutines")
+func LoadTest(urls []string, maxGoroutines *int) ([]traceResult, error) {
 
 	group, ctx := errgroup.WithContext(context.Background())
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)

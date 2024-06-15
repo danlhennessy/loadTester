@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -29,13 +30,15 @@ func TestConcurrentLoadTest(t *testing.T) {
 
 	testUrls := []string{
 		"https://example.com",
-		"https://google.com",
+		"https://grrrrrrqwddwqdwoogle.com",
 		"https://bbc.co.uk",
 	}
 	testGoroutines := len(testUrls)
 	want := make([]traceResult, testGoroutines)
 
 	allResults, err := LoadTest(testUrls, &testGoroutines)
+
+	fmt.Println("Check")
 
 	if err != nil {
 		t.Fatalf("Concurrent load test failed, error: %s\n", err)

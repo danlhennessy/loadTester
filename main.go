@@ -57,12 +57,16 @@ func LoadTest(urls []string, maxGoroutines *int) ([]traceResult, error) {
 	}
 
 	go func() {
-		for err := range errChan {
-			fmt.Fprintln(os.Stderr, "Error:", err)
-		}
+		group.Wait()
+		close(errChan)
 	}()
 
+	for err := range errChan {
+		fmt.Fprintln(os.Stderr, "Error:", err)
+	}
+
 	if err := group.Wait(); err != nil {
+
 		return nil, err
 	}
 
@@ -107,5 +111,6 @@ func hitUrl(ctx context.Context, url string) (traceResult, error) {
 		totalDuration: elapsed,
 	}
 
+	client.CloseIdleConnections()
 	return result, nil
 }

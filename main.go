@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptrace"
 	"os"
+	"sync"
 	"time"
 
 	flag "github.com/spf13/pflag"
-	"golang.org/x/sync/errgroup"
 )
 
 type traceResult struct {
@@ -30,29 +31,40 @@ func main() {
 		return
 	}
 
-	for result := range allResults {
-		fmt.Println(result)
+	for _, result := range allResults {
+		fmt.Printf("Result: %+v\n", result)
 	}
 }
 
 func LoadTest(urls []string, maxGoroutines *int) ([]traceResult, error) {
-	group, ctx := errgroup.WithContext(context.Background())
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
+	ctx := context.Background()
+	// results := make([]traceResult, len(urls))
+	var results []traceResult
+	resultChan := make(chan traceResult)
+	var wg sync.WaitGroup
 
-	group.SetLimit(*maxGoroutines)
-	results := make([]traceResult, len(urls))
-
+	wg.Add(len(urls))
 	for i := range urls {
-		group.Go(func() error {
+		go func(i int) {
+			defer wg.Done()
+			if urls[i] == "https://example.com" {
+				time.Sleep(time.Second)
+			}
 			result, err := hitUrl(ctx, urls[i])
-			results[i] = result
-			return err
-		})
+			resultChan <- result
+			if err != nil {
+				log.Fatal(err)
+			}
+		}(i)
 	}
+	go func() {
+		wg.Wait()
+		close(resultChan)
+	}()
 
-	if err := group.Wait(); err != nil {
-		return nil, err
+	for result := range resultChan {
+		results = append(results, result)
+		fmt.Printf("CHANNEL RESULT: %v\n", result)
 	}
 
 	return results, nil

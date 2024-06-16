@@ -36,7 +36,7 @@ func TestConcurrentLoadTest(t *testing.T) {
 	testGoroutines := len(testUrls)
 	want := make([]traceResult, testGoroutines)
 
-	allResults, err := LoadTest(testUrls, &testGoroutines)
+	allResults, err := LoadTest(testUrls)
 
 	if err != nil {
 		fmt.Printf("Concurrent load test failed, error: %s\n", err)

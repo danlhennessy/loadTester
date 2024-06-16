@@ -20,25 +20,22 @@ type traceResult struct {
 }
 
 func main() {
-
-	var maxGoroutines = flag.IntP("goroutines", "g", 0, "Maximum number of goroutines")
 	flag.Parse()
 	urls := flag.Args()
 
-	allResults, err := LoadTest(urls, maxGoroutines)
+	allResults, err := LoadTest(urls)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 
 	for _, result := range allResults {
-		fmt.Printf("Result: %+v\n", result)
+		log.Printf("Result: %+v\n", result)
 	}
 }
 
-func LoadTest(urls []string, maxGoroutines *int) ([]traceResult, error) {
+func LoadTest(urls []string) ([]traceResult, error) {
 	ctx := context.Background()
-	// results := make([]traceResult, len(urls))
 	var results []traceResult
 	resultChan := make(chan traceResult)
 	var wg sync.WaitGroup
@@ -46,10 +43,10 @@ func LoadTest(urls []string, maxGoroutines *int) ([]traceResult, error) {
 	wg.Add(len(urls))
 	for i := range urls {
 		go func(i int) {
+			ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+			defer cancel()
 			defer wg.Done()
-			if urls[i] == "https://example.com" {
-				time.Sleep(time.Second)
-			}
+
 			result, err := hitUrl(ctx, urls[i])
 			resultChan <- result
 			if err != nil {
@@ -64,7 +61,6 @@ func LoadTest(urls []string, maxGoroutines *int) ([]traceResult, error) {
 
 	for result := range resultChan {
 		results = append(results, result)
-		fmt.Printf("CHANNEL RESULT: %v\n", result)
 	}
 
 	return results, nil
